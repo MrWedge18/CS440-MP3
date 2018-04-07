@@ -10,6 +10,25 @@ prob_list = np.zeros((10, 32, 32))
 prob_digit = np.zeros(10)
 
 confusion = np.zeros((10, 10))
+total_accuracy = 0.0
+
+accuracy_array = np.empty(10)
+
+def test_smoothing():
+    global prob_list, prob_digit, confusion, total_accuracy, smoothing
+    for i in range(1, 11):
+        smoothing = i
+        train()
+        test_eval()
+        accuracy_array[i-1] = total_accuracy
+        train_file.seek(0)
+        test_file.seek(0)
+        prob_list = np.zeros((10, 32, 32))
+        prob_digit = np.zeros(10)
+        confusion = np.zeros((10,10))
+        total_accuracy = 0.0
+    
+    print(accuracy_array)
 
 def print_prob_list(x):
     for i in range(32):
@@ -55,10 +74,14 @@ def train():
         prob_digit[x] = prob_digit[x] / digit_occurences
     
 def test_eval():
+    global total_accuracy
     test_list = []
     
     accuracy = np.zeros(10)
     occurences = np.zeros(10)
+    
+    correct = 0.0
+    total = 0.0
     
     best = np.zeros((10, 32, 32), dtype = int)
     best_prob = np.full(10, -np.inf)
@@ -105,6 +128,9 @@ def test_eval():
                 
         if max_prob[1] == digit_class:
             accuracy[digit_class] += 1
+            correct += 1
+            
+        total += 1
         
         if prob[digit_class] > best_prob[digit_class]:
             best_prob[digit_class] = prob[digit_class]
@@ -121,6 +147,7 @@ def test_eval():
         test_list.append(max_prob[1])
         
     accuracy  = accuracy / occurences
+    total_accuracy = correct / total
     for x in range(10):
         confusion[x] = confusion[x] / occurences[x]
     
@@ -128,6 +155,8 @@ def test_eval():
     print(test_list)
     print("Accuracy per digit:")
     print(accuracy)
+    print("Overall accuracy:")
+    print(total_accuracy)
     print("Confusion Matrix:")
     print_numpy(confusion)
     print("Best: ")
